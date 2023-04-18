@@ -4,11 +4,11 @@ This project is a RESTful GeoIP Web Service 🗺️ implemented using Spring Boo
 
 ## 📚 Table of Contents
 
-1. [✨ Features](#features)
-2. [📋 Requirements](#requirements)
-3. [🔧 Installation](#installation)
-4. [🚀 Usage](#usage)
-5. [🧪 Running Tests](#running-tests)
+1. ✨ Features](#features)
+2. 📋 Requirements](#requirements)
+3. 🔧 Installation](#installation)
+4. 🚀 Usage](#usage)
+5. 🧪 Running Tests](#running-tests)
 
 ## ✨ Features
 

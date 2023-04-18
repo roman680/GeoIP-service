@@ -16,7 +16,7 @@ public class DataImportConfiguration {
 
     @EventListener
     public void onApplicationEvent(ContextRefreshedEvent event) {
-        String csvFilePath = "C:\\Users\\rvden\\OneDrive\\Desktop\\ip\\data.CSV";
+        String csvFilePath = "PATH_TO_CSV_FILE";
         csvImporter.importCsv(csvFilePath);
     }
 }

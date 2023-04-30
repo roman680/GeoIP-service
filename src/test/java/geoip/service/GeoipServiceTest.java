@@ -1,7 +1,7 @@
 package geoip.service;
 
-import geoip.model.IPlocation;
-import geoip.repository.IplocationRepository;
+import geoip.model.IpLocation;
+import geoip.repository.IpLocationRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,16 +18,16 @@ import static org.mockito.Mockito.when;
 public class GeoipServiceTest {
 
     @InjectMocks
-    private GeoipService geoIPService;
+    private GeoIpService geoIPService;
 
     @Mock
-    private IplocationRepository ipLocationRepository;
+    private IpLocationRepository ipLocationRepository;
 
-    private IPlocation testIPlocation;
+    private IpLocation testIPlocation;
 
     @BeforeEach
     public void setup() {
-        testIPlocation = new IPlocation();
+        testIPlocation = new IpLocation();
         testIPlocation.setCityName("Los Angeles");
         testIPlocation.setCountryCode("US");
         testIPlocation.setCountryName("United States");
@@ -41,9 +41,9 @@ public class GeoipServiceTest {
     @Test
     public void findIPLocation_Ok() {
         String ipAddress = "192.168.1.1";
-        when(ipLocationRepository.findipLocationInrange(anyLong())).thenReturn(testIPlocation);
+        when(ipLocationRepository.findIPLocationInRange(anyLong())).thenReturn(testIPlocation);
 
-        IPlocation result = geoIPService.findipLocation(ipAddress);
+        IpLocation result = geoIPService.findIPLocation(ipAddress);
 
         assertEquals(testIPlocation, result);
     }
@@ -52,7 +52,7 @@ public class GeoipServiceTest {
     public void findIPLocation_invalidIp_NotOk() {
         String invalidIpAddress = "999.999.999.999";
 
-        IPlocation result = geoIPService.findipLocation(invalidIpAddress);
+        IpLocation result = geoIPService.findIPLocation(invalidIpAddress);
 
         assertNull(result);
     }

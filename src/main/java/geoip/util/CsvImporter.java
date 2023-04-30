@@ -4,24 +4,30 @@ import com.opencsv.CSVParserBuilder;
 import com.opencsv.CSVReader;
 import com.opencsv.CSVReaderBuilder;
 import com.opencsv.exceptions.CsvException;
-import geoip.model.IPlocation;
-import geoip.repository.IplocationRepository;
+import geoip.model.IpLocation;
+import geoip.repository.IpLocationRepository;
 import java.io.FileReader;
 import java.io.IOException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 @Component
 public class CsvImporter {
+    private static final int BATCH_SIZE = 1000;
+    private static final int NUM_THREADS = 4;
 
-    private static final Logger logger = LoggerFactory.getLogger(CsvImporter.class);
-    private final IplocationRepository ipLocationRepository;
+    private final IpLocationRepository ipLocationRepository;
 
-    public CsvImporter(IplocationRepository ipLocationRepository) {
+    public CsvImporter(IpLocationRepository ipLocationRepository) {
         this.ipLocationRepository = ipLocationRepository;
     }
 
+    @Transactional
     public void importCsv(String filePath) {
         try (CSVReader reader = new CSVReaderBuilder(new FileReader(filePath))
                 .withCSVParser(new CSVParserBuilder()
@@ -30,12 +36,13 @@ public class CsvImporter {
                         .build())
                 .build()) {
 
-            logger.info("Reading CSV file: {}", filePath);
             reader.skip(1);
 
+            ExecutorService executor = Executors.newFixedThreadPool(NUM_THREADS);
+            List<IpLocation> ipLocations = new ArrayList<>();
             String[] fields;
             while ((fields = reader.readNext()) != null) {
-                IPlocation ipLocation = new IPlocation();
+                IpLocation ipLocation = new IpLocation();
                 ipLocation.setIpAddressFrom(Long.valueOf(fields[0]));
                 ipLocation.setIpAddressTo(Long.valueOf(fields[1]));
                 ipLocation.setCountryCode(fields[2]);
@@ -45,13 +52,31 @@ public class CsvImporter {
                 ipLocation.setLatitude(Double.parseDouble(fields[6]));
                 ipLocation.setLongitude(Double.parseDouble(fields[7]));
 
-                ipLocationRepository.save(ipLocation);
+                ipLocations.add(ipLocation);
+
+                if (ipLocations.size() >= BATCH_SIZE) {
+                    List<IpLocation> batch = ipLocations;
+                    ipLocations = new ArrayList<>();
+                    executor.submit(() -> saveBatch(batch));
+                }
             }
 
-            logger.info("Data imported successfully.");
-        } catch (IOException | CsvException e) {
-            logger.error("Error importing data: {}", e.getMessage());
+            if (!ipLocations.isEmpty()) {
+                List<IpLocation> remainingBatch = ipLocations;
+                executor.submit(() -> saveBatch(remainingBatch));
+            }
+
+            executor.shutdown();
+            executor.awaitTermination(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
+
+        } catch (IOException | CsvException | InterruptedException e) {
             throw new RuntimeException("Can't insert data from csv file: " + filePath);
         }
     }
+
+    @Transactional
+    void saveBatch(List<IpLocation> ipLocations) {
+        ipLocationRepository.saveAll(ipLocations);
+    }
 }
+

@@ -7,8 +7,7 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "iplocation")
-public class IPlocation {
-
+public class IpLocation {
     @Id
     @Column(name = "ip_address_from")
     private Long ipAddressFrom;

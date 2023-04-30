@@ -17,7 +17,7 @@ public class DataImportConfiguration {
 
     @EventListener
     public void onApplicationEvent(ContextRefreshedEvent event) {
-        String csvFilePath = "src/main/resources/data.CSV";
+        String csvFilePath = "PATH_TO_CSV_FILE";
         csvImporter.importCsv(csvFilePath);
     }
 }
